@@ -1,2 +1,3 @@
-# farm-tech-solutions-v5
-FarmTech na era da cloud computing
+# Crop Yield Prediction
+
+This project aims to analyze agricultural data and predict crop yield using Machine Learning models.
