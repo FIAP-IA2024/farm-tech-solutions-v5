@@ -1,0 +1,78 @@
+# windsurfrules - Guidelines for Code Generation in Project Phase 5 - Machine Learning in Action (Delivery 1)
+
+## General
+
+- The code must be written in Python 3 and developed in a Jupyter Notebook (.ipynb).
+- The code should be optimized and follow best practices for Machine Learning development.
+- The notebook must contain well-structured Markdown cells to explain each step of the project.
+- The code should be well-commented to describe the logic behind functions and operations.
+- The following libraries must be used: Pandas, NumPy, Matplotlib, Seaborn, and Scikit-Learn.
+
+## Exploratory Data Analysis
+
+- The code must begin by loading the dataset "crop_yield.csv".
+- The exploratory analysis must include:
+  - Descriptive statistics of the variables (mean, median, standard deviation, min and max values).
+  - Checking for missing values and handling them appropriately (e.g., imputation or removal).
+  - Histograms and boxplots to visualize the distribution of variables.
+  - Correlation matrix to identify relationships between variables.
+  - Scatter plots to detect trends between variables.
+
+## Clustering (Unsupervised Machine Learning)
+
+- Implement a clustering model to identify patterns in crop productivity.
+- Allowed algorithms: K-Means, DBSCAN, or Agglomerative Clustering.
+- The number of clusters must be determined automatically using:
+  - The Elbow Method or Silhouette Score.
+- Visualize the clusters using **2D and, if possible, 3D** plots.
+- Identify and analyze outliers and their impact on the dataset.
+
+## Predictive Modeling (Supervised Machine Learning)
+
+- Implement **five** different Machine Learning models to predict crop yield:
+  - Linear Regression
+  - Decision Tree
+  - Random Forest
+  - Gradient Boosting (XGBoost or LightGBM)
+  - Neural Network (MLP Regressor from Scikit-Learn or TensorFlow/Keras)
+- Split the dataset into **80% training and 20% testing**.
+- Apply data normalization if necessary (e.g., StandardScaler or MinMaxScaler).
+- Evaluate the models using the following metrics:
+  - R² Score
+  - Mean Absolute Error (MAE)
+  - Mean Squared Error (MSE)
+  - Root Mean Squared Error (RMSE)
+- Compare the performance of the models and highlight the most suitable one.
+
+## Documentation & Organization
+
+- The **README** in the repository must include:
+  - Introduction to the project and objectives.
+  - A brief explanation of the workflow.
+  - A link to the Jupyter Notebook.
+  - A link to the video demonstration on YouTube.
+- The **Jupyter Notebook** must be well-structured and commented for readability.
+
+## Video Demonstration
+
+- The project must include a **5-minute** video demonstration.
+- The video must be uploaded to **YouTube as "Unlisted"**.
+- The video should cover:
+  - A brief explanation of the dataset.
+  - Demonstration of exploratory data analysis.
+  - Comparison of Machine Learning models.
+
+## GitHub Repository Structure
+
+- The repository must contain the following files:
+  - `notebooks/` → Folder containing the Jupyter Notebook.
+  - `data/` → Folder containing the dataset `crop_yield.csv`.
+  - `images/` → Folder containing graphs and visualizations.
+  - `README.md` → Project documentation.
+- **No commits should be made after the submission deadline**.
+
+## Additional Rules
+
+- Always prioritize code clarity and organization.
+- If any model performs poorly, the AI should suggest hyperparameter tuning.
+- The code must be efficient and avoid unnecessary loops.
