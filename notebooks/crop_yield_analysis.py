@@ -17,12 +17,20 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
+
+# Import libraries for supervised learning models
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.neural_network import MLPRegressor
+from xgboost import XGBRegressor
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 # Set plot style and display settings
 def setup_environment():
@@ -759,6 +767,467 @@ def perform_clustering_analysis(df):
     
     return outlier_df
 
+def prepare_data_for_modeling(df, target_column='Yield', test_size=0.2, random_state=42):
+    """
+    Prepare data for supervised learning models.
+    
+    Args:
+        df (pandas.DataFrame): Dataset to prepare
+        target_column (str): Name of the target column
+        test_size (float): Proportion of data to use for testing
+        random_state (int): Random seed for reproducibility
+        
+    Returns:
+        tuple: (X_train, X_test, y_train, y_test, feature_names, scaler)
+    """
+    print("\n" + "="*50)
+    print("PREPARING DATA FOR PREDICTIVE MODELING")
+    print("="*50)
+    
+    # Make a copy of the dataframe to avoid modifying the original
+    model_df = df.copy()
+    
+    # If we have cluster columns from previous analysis, remove them
+    cols_to_drop = [col for col in model_df.columns if col in ['Cluster', 'is_outlier']]
+    if cols_to_drop:
+        model_df = model_df.drop(columns=cols_to_drop)
+        print(f"Removed columns from clustering analysis: {cols_to_drop}")
+    
+    # Separate features and target
+    X = model_df.drop(columns=[target_column])
+    y = model_df[target_column]
+    
+    # Get feature names for later use
+    feature_names = X.columns.tolist()
+    print(f"Features for modeling: {feature_names}")
+    print(f"Target variable: {target_column}")
+    
+    # Split data into training and testing sets (80% train, 20% test)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+    print(f"Training set size: {X_train.shape[0]} samples")
+    print(f"Testing set size: {X_test.shape[0]} samples")
+    
+    # Handle categorical features
+    categorical_cols = X.select_dtypes(include=['object']).columns.tolist()
+    numerical_cols = X.select_dtypes(include=['float64', 'int64']).columns.tolist()
+    
+    if categorical_cols:
+        print(f"Encoding categorical features: {categorical_cols}")
+        # Use one-hot encoding for categorical features
+        encoder = OneHotEncoder(sparse_output=False, drop='first')
+        
+        # Apply to both train and test sets
+        X_train_cat = encoder.fit_transform(X_train[categorical_cols])
+        X_test_cat = encoder.transform(X_test[categorical_cols])
+        
+        # Get encoded feature names
+        encoded_feature_names = []
+        for i, category in enumerate(encoder.categories_):
+            for j, cat_value in enumerate(category[1:], 1):  # Skip the first category (dropped)
+                encoded_feature_names.append(f"{categorical_cols[i]}_{cat_value}")
+        
+        # Scale numerical features
+        if numerical_cols:
+            scaler = StandardScaler()
+            X_train_num = scaler.fit_transform(X_train[numerical_cols])
+            X_test_num = scaler.transform(X_test[numerical_cols])
+            
+            # Combine numerical and categorical features
+            X_train_scaled = np.hstack([X_train_num, X_train_cat])
+            X_test_scaled = np.hstack([X_test_num, X_test_cat])
+            
+            # Update feature names
+            feature_names = numerical_cols + encoded_feature_names
+        else:
+            X_train_scaled = X_train_cat
+            X_test_scaled = X_test_cat
+            feature_names = encoded_feature_names
+    else:
+        # If no categorical features, just scale numerical features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+    
+    print("Data preprocessing complete")
+    print(f"Final feature set size: {len(feature_names)} features")
+    
+    return X_train_scaled, X_test_scaled, y_train, y_test, feature_names, scaler
+
+def evaluate_model(model, X_test, y_test, model_name):
+    """
+    Evaluate a regression model using multiple metrics.
+    
+    Args:
+        model: Trained model
+        X_test: Test features
+        y_test: Test target values
+        model_name (str): Name of the model for display
+        
+    Returns:
+        dict: Dictionary of evaluation metrics
+    """
+    # Make predictions
+    y_pred = model.predict(X_test)
+    
+    # Calculate metrics
+    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    mse = mean_squared_error(y_test, y_pred)
+    rmse = np.sqrt(mse)
+    
+    # Print metrics
+    print(f"\n{model_name} Performance:")
+    print(f"R² Score: {r2:.4f}")
+    print(f"Mean Absolute Error: {mae:.4f}")
+    print(f"Mean Squared Error: {mse:.4f}")
+    print(f"Root Mean Squared Error: {rmse:.4f}")
+    
+    # Create a dictionary of metrics for comparison
+    metrics = {
+        'Model': model_name,
+        'R²': r2,
+        'MAE': mae,
+        'MSE': mse,
+        'RMSE': rmse
+    }
+    
+    # Visualize actual vs predicted values
+    plt.figure(figsize=(10, 6))
+    plt.scatter(y_test, y_pred, alpha=0.7)
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+    plt.xlabel('Actual Yield')
+    plt.ylabel('Predicted Yield')
+    plt.title(f'{model_name}: Actual vs Predicted Yield')
+    plt.grid(True, alpha=0.3)
+    plt.savefig(os.path.join(IMAGES_DIR, f'{model_name.lower().replace(" ", "_")}_predictions.png'))
+    plt.close()
+    
+    return metrics
+
+def plot_feature_importance(model, feature_names, model_name):
+    """
+    Plot feature importance for models.
+    
+    Args:
+        model: Trained model (tree-based or linear regression)
+        feature_names (list): Names of features
+        model_name (str): Name of the model for display
+    """
+    # For tree-based models with feature_importances_ attribute
+    if hasattr(model, 'feature_importances_'):
+        # Get feature importances
+        importances = model.feature_importances_
+        
+        # Sort feature importances in descending order
+        indices = np.argsort(importances)[::-1]
+        
+        # Plot feature importances
+        plt.figure(figsize=(10, 6))
+        plt.title(f'Feature Importance - {model_name}')
+        plt.bar(range(len(importances)), importances[indices], align='center')
+        plt.xticks(range(len(importances)), [feature_names[i] for i in indices], rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(IMAGES_DIR, f'{model_name.lower().replace(" ", "_")}_feature_importance.png'))
+        plt.close()
+        print(f"\nFeature importance plot saved for {model_name}")
+    
+    # For linear regression models with coef_ attribute
+    elif hasattr(model, 'coef_'):
+        # Get coefficients
+        coefficients = model.coef_
+        
+        # Create a DataFrame for better visualization
+        coef_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': coefficients})
+        
+        # Sort by absolute coefficient values
+        coef_df['Abs_Coefficient'] = np.abs(coef_df['Coefficient'])
+        coef_df = coef_df.sort_values('Abs_Coefficient', ascending=False)
+        
+        # Plot coefficients
+        plt.figure(figsize=(10, 6))
+        plt.title(f'Feature Coefficients - {model_name}')
+        bars = plt.barh(range(len(coef_df)), coef_df['Coefficient'], align='center')
+        
+        # Color bars based on coefficient sign
+        for i, bar in enumerate(bars):
+            if coef_df['Coefficient'].iloc[i] < 0:
+                bar.set_color('salmon')
+            else:
+                bar.set_color('skyblue')
+                
+        plt.yticks(range(len(coef_df)), coef_df['Feature'])
+        plt.axvline(x=0, color='black', linestyle='-', alpha=0.3)
+        plt.xlabel('Coefficient Value')
+        plt.tight_layout()
+        plt.savefig(os.path.join(IMAGES_DIR, f'{model_name.lower().replace(" ", "_")}_coefficients.png'))
+        plt.close()
+        print(f"\nCoefficient plot saved for {model_name}")
+    
+    else:
+        print(f"\nFeature importance not available for {model_name}")
+
+def train_linear_regression(X_train, y_train, X_test, y_test, feature_names):
+    """
+    Train and evaluate a Linear Regression model.
+    
+    Args:
+        X_train: Training features
+        y_train: Training target values
+        X_test: Test features
+        y_test: Test target values
+        feature_names (list): Names of features
+        
+    Returns:
+        tuple: (model, metrics)
+    """
+    print("\n" + "="*50)
+    print("LINEAR REGRESSION MODEL")
+    print("="*50)
+    
+    # Create and train the model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    
+    # Print model coefficients
+    print("Model coefficients:")
+    for feature, coef in zip(feature_names, model.coef_):
+        print(f"{feature}: {coef:.4f}")
+    print(f"Intercept: {model.intercept_:.4f}")
+    
+    # Evaluate the model
+    metrics = evaluate_model(model, X_test, y_test, "Linear Regression")
+    
+    return model, metrics
+
+def train_decision_tree(X_train, y_train, X_test, y_test, feature_names):
+    """
+    Train and evaluate a Decision Tree Regressor model.
+    
+    Args:
+        X_train: Training features
+        y_train: Training target values
+        X_test: Test features
+        y_test: Test target values
+        feature_names (list): Names of features
+        
+    Returns:
+        tuple: (model, metrics)
+    """
+    print("\n" + "="*50)
+    print("DECISION TREE REGRESSOR MODEL")
+    print("="*50)
+    
+    # Create and train the model
+    model = DecisionTreeRegressor(random_state=42)
+    model.fit(X_train, y_train)
+    
+    # Evaluate the model
+    metrics = evaluate_model(model, X_test, y_test, "Decision Tree")
+    
+    # Plot feature importance
+    plot_feature_importance(model, feature_names, "Decision Tree")
+    
+    return model, metrics
+
+def train_random_forest(X_train, y_train, X_test, y_test, feature_names):
+    """
+    Train and evaluate a Random Forest Regressor model.
+    
+    Args:
+        X_train: Training features
+        y_train: Training target values
+        X_test: Test features
+        y_test: Test target values
+        feature_names (list): Names of features
+        
+    Returns:
+        tuple: (model, metrics)
+    """
+    print("\n" + "="*50)
+    print("RANDOM FOREST REGRESSOR MODEL")
+    print("="*50)
+    
+    # Create and train the model
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    
+    # Evaluate the model
+    metrics = evaluate_model(model, X_test, y_test, "Random Forest")
+    
+    # Plot feature importance
+    plot_feature_importance(model, feature_names, "Random Forest")
+    
+    return model, metrics
+
+def train_gradient_boosting(X_train, y_train, X_test, y_test, feature_names):
+    """
+    Train and evaluate a Gradient Boosting Regressor model (XGBoost).
+    
+    Args:
+        X_train: Training features
+        y_train: Training target values
+        X_test: Test features
+        y_test: Test target values
+        feature_names (list): Names of features
+        
+    Returns:
+        tuple: (model, metrics)
+    """
+    print("\n" + "="*50)
+    print("GRADIENT BOOSTING REGRESSOR MODEL (XGBOOST)")
+    print("="*50)
+    
+    # Create and train the model
+    model = XGBRegressor(n_estimators=100, learning_rate=0.1, random_state=42)
+    model.fit(X_train, y_train)
+    
+    # Evaluate the model
+    metrics = evaluate_model(model, X_test, y_test, "XGBoost")
+    
+    # Plot feature importance
+    plot_feature_importance(model, feature_names, "XGBoost")
+    
+    return model, metrics
+
+def train_neural_network(X_train, y_train, X_test, y_test, feature_names):
+    """
+    Train and evaluate a Neural Network Regressor model (MLP).
+    
+    Args:
+        X_train: Training features
+        y_train: Training target values
+        X_test: Test features
+        y_test: Test target values
+        feature_names (list): Names of features
+        
+    Returns:
+        tuple: (model, metrics)
+    """
+    print("\n" + "="*50)
+    print("NEURAL NETWORK REGRESSOR MODEL (MLP)")
+    print("="*50)
+    
+    # Create and train the model
+    model = MLPRegressor(
+        hidden_layer_sizes=(100, 50),
+        activation='relu',
+        solver='adam',
+        alpha=0.0001,
+        max_iter=1000,
+        random_state=42
+    )
+    model.fit(X_train, y_train)
+    
+    # Evaluate the model
+    metrics = evaluate_model(model, X_test, y_test, "Neural Network")
+    
+    return model, metrics
+
+def compare_models(all_metrics):
+    """
+    Compare all models and identify the best one.
+    
+    Args:
+        all_metrics (list): List of dictionaries with model metrics
+    """
+    print("\n" + "="*50)
+    print("MODEL COMPARISON")
+    print("="*50)
+    
+    # Create a DataFrame for comparison
+    comparison_df = pd.DataFrame(all_metrics)
+    
+    # Set 'Model' as the index
+    comparison_df.set_index('Model', inplace=True)
+    
+    # Display the comparison table
+    print("\nModel Performance Comparison:")
+    print(comparison_df)
+    
+    # Identify the best model based on R² score
+    best_r2_model = comparison_df['R²'].idxmax()
+    best_r2_value = comparison_df.loc[best_r2_model, 'R²']
+    
+    # Identify the best model based on RMSE
+    best_rmse_model = comparison_df['RMSE'].idxmin()
+    best_rmse_value = comparison_df.loc[best_rmse_model, 'RMSE']
+    
+    print(f"\nBest model based on R² score: {best_r2_model} (R² = {best_r2_value:.4f})")
+    print(f"Best model based on RMSE: {best_rmse_model} (RMSE = {best_rmse_value:.4f})")
+    
+    # Create a bar chart for R² comparison
+    plt.figure(figsize=(12, 6))
+    
+    # Plot R² scores
+    plt.subplot(1, 2, 1)
+    comparison_df['R²'].sort_values().plot(kind='barh', color='skyblue')
+    plt.title('Model Comparison - R² Score')
+    plt.xlabel('R² Score (higher is better)')
+    plt.grid(True, alpha=0.3)
+    
+    # Plot RMSE scores
+    plt.subplot(1, 2, 2)
+    comparison_df['RMSE'].sort_values(ascending=False).plot(kind='barh', color='salmon')
+    plt.title('Model Comparison - RMSE')
+    plt.xlabel('RMSE (lower is better)')
+    plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(IMAGES_DIR, 'model_comparison.png'))
+    plt.close()
+    print(f"\nModel comparison chart saved to '{os.path.join(IMAGES_DIR, 'model_comparison.png')}'")
+    
+    return comparison_df, best_r2_model
+
+def perform_predictive_modeling(df):
+    """
+    Perform predictive modeling to forecast crop yields.
+    
+    Args:
+        df (pandas.DataFrame): Dataset to analyze
+        
+    Returns:
+        tuple: (best_model, comparison_df)
+    """
+    print("\n" + "="*50)
+    print("PREDICTIVE MODELING FOR CROP YIELD")
+    print("="*50)
+    
+    # Step 1: Prepare data for modeling
+    X_train, X_test, y_train, y_test, feature_names, scaler = prepare_data_for_modeling(df)
+    
+    # Step 2: Train and evaluate different models
+    all_metrics = []
+    
+    # Linear Regression
+    _, lr_metrics = train_linear_regression(X_train, y_train, X_test, y_test, feature_names)
+    all_metrics.append(lr_metrics)
+    
+    # Decision Tree
+    _, dt_metrics = train_decision_tree(X_train, y_train, X_test, y_test, feature_names)
+    all_metrics.append(dt_metrics)
+    
+    # Random Forest
+    _, rf_metrics = train_random_forest(X_train, y_train, X_test, y_test, feature_names)
+    all_metrics.append(rf_metrics)
+    
+    # Gradient Boosting (XGBoost)
+    _, xgb_metrics = train_gradient_boosting(X_train, y_train, X_test, y_test, feature_names)
+    all_metrics.append(xgb_metrics)
+    
+    # Neural Network
+    _, nn_metrics = train_neural_network(X_train, y_train, X_test, y_test, feature_names)
+    all_metrics.append(nn_metrics)
+    
+    # Step 3: Compare all models
+    comparison_df, best_model = compare_models(all_metrics)
+    
+    print(f"\nPredictive modeling complete. The best model for crop yield prediction is {best_model}.")
+    
+    return best_model, comparison_df
+
 def summarize_findings(df, missing_info):
     """
     Summarize key findings from the exploratory data analysis.
@@ -813,11 +1282,20 @@ def summarize_findings(df, missing_info):
     for col, corr in top_negative.items():
         print(f"     * {col}: {corr:.3f}")
     
+    # Predictive Modeling
+    print("\n5. Predictive Modeling Results:")
+    print("   - Five different machine learning models were implemented to predict crop yield.")
+    print("   - Models evaluated: Linear Regression, Decision Tree, Random Forest, XGBoost, and Neural Network.")
+    print("   - Each model was evaluated using R², MAE, MSE, and RMSE metrics.")
+    print("   - The best performing model based on R² score was identified.")
+    print("   - Feature importance analysis revealed the most influential factors affecting crop yield.")
+    
     # Next Steps
-    print("\n5. Next Steps:")
-    print("   - Perform clustering analysis to identify patterns in crop productivity.")
-    print("   - Develop predictive models to forecast crop yields based on environmental factors.")
-    print("   - Evaluate different machine learning algorithms for yield prediction.")
+    print("\n6. Next Steps:")
+    print("   - Further tune hyperparameters of the best performing model to improve prediction accuracy.")
+    print("   - Explore additional features or feature engineering techniques to enhance model performance.")
+    print("   - Consider ensemble methods combining multiple models for more robust predictions.")
+    print("   - Develop a deployment strategy for the model to assist farmers in yield prediction.")
 
 def main():
     """Main function to run the entire analysis."""
@@ -848,6 +1326,9 @@ def main():
     # Perform clustering analysis to identify patterns in crop productivity
     clustered_df = perform_clustering_analysis(df)
     
+    # Perform predictive modeling to forecast crop yields
+    best_model, model_comparison = perform_predictive_modeling(df)
+    
     # Summarize findings
     summarize_findings(df, missing_info)
     
@@ -855,6 +1336,7 @@ def main():
     print("ANALYSIS COMPLETE")
     print("="*50)
     print(f"All visualizations have been saved to the '{IMAGES_DIR}' directory.")
+    print(f"Best model for crop yield prediction: {best_model}")
 
 if __name__ == "__main__":
     main()
