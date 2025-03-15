@@ -114,8 +114,6 @@ WIP
   - Gráficos de importância de features
   - Comparações de desempenho dos modelos
 
-- **`models/`**: Modelos treinados e salvos (opcional)
-
 ---
 
 ### 🔧 Como Executar
