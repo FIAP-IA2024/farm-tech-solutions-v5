@@ -184,7 +184,20 @@ WIP
 
 ## ☁️ **Entrega 2 - Computação em Nuvem**
 
-(WIP)
+Com a finalidade de estimar os custos de hospedagem em nuvem, fizemos um estudo utilizando a [calculadora oficial de custos da AWS](https://calculator.aws), onde criamos uma estimativa de custos para uma máquina virtual EC2 `t4g.small` com as seguintes configurações: Instância compartilhada, com 100% de utilização sob demanda, 1vCPU, 2GB de RAM, até 5Gbit de rede e 50GB de armazenamento EBS.
+
+Esta máquina virtual será responsável por rodar a aplicação responsável pela API que receberá os dados dos sensores, e também rodará o modelo de Machine Learning.
+
+Para uma comparação de custos mais abrangente, criamos uma simulação dessa mesma configuração em duas regiões diferentes: US East (N. Virginia) e South America (São Paulo), e os resultados foram os seguintes:
+
+- **Custo mensal/anual**:
+  - **US East (N. Virginia)**: 16.26 / 195.12 USD
+  - **South America (Sao Paulo)**: 27.16 / 325.92 USD
+
+Com base no escopo dessa comparação, podemos concluir que os custos de hospedagem nos EUA são 40% menores do que no Brazil. Porém, existem outros pontos importantes que devem ser considerados ao decidir qual região hospedar a aplicação que, no nosso caso, são os seguintes:
+
+ - **Latência de rede**: ...
+ - **Restrições legais**: ...
 
 ---
 
