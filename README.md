@@ -184,7 +184,29 @@ WIP
 
 ## ☁️ **Entrega 2 - Computação em Nuvem**
 
-(WIP)
+Com a finalidade de estimar os custos de hospedagem em nuvem, fizemos um estudo utilizando a [calculadora oficial de custos da AWS](https://calculator.aws), onde criamos uma estimativa de custos para uma máquina virtual EC2 `t4g.small` com as seguintes configurações: Instância compartilhada, com 100% de utilização sob demanda, 1vCPU, 2GB de RAM, até 5Gbit de rede e 50GB de armazenamento EBS.
+
+Esta máquina virtual será responsável por rodar a aplicação responsável pela API que receberá os dados dos sensores, e também rodará o modelo de Machine Learning, conforme o diagrama a seguir:
+
+![Arquitetura conceitual](images/arquitetura-cloud.png)
+
+Para uma comparação de custos mais abrangente, criamos uma simulação dessa mesma configuração em duas regiões diferentes: US East (N. Virginia) e South America (São Paulo), e os resultados foram os seguintes:
+
+- **Custo mensal/anual**:
+  - **US East (N. Virginia)**: 16.26 / 195.12 USD
+  - **South America (Sao Paulo)**: 27.16 / 325.92 USD
+
+Com base no escopo dessa comparação, podemos concluir que os custos de hospedagem nos EUA são 40% menores do que no Brazil. Porém, existem outros pontos importantes que devem ser considerados ao decidir qual região hospedar a aplicação que, no nosso caso, são os seguintes:
+
+ - **Latência de rede**: Existe uma diferença significativa de latência de comunicação entre servidores no Brasil e servidores nos EUA, e isso tem impacto direto no desempenho da coleta de informações dos sensores. Como os sensores que consomem a API estão no Brasil, o número de dispositivos de rede que os pacotes TCP/IP precisam atravessar para chegar até os servidores da Amazon em São Paulo é significativamente menor do que para chegar até os servidores da Amazon em Virgínia do Norte, nos EUA. Essa distância maior resulta em uma latência de rede maior, medida em milisegundos (ms). Uma pesquisa rápida no site https://cloudping.info a partir do meu computador, em São Paulo, demonstra que minha latêncial atual até a região `us-east-1` (N. Virginia) da AWS é de aproximadamente 190ms, enquanto a latência para `sa-east-1` (São Paulo) é de apenas 19ms, ou seja, 10x mais rápida.
+
+ - **Restrições legais**: Para garantir conformidade com a **LGPD** e evitar complicações com a transferência internacional de dados, a hospedagem da API na região AWS São Paulo (sa-east-1) é essencial para processar os dados coletados de sensores IoT no Brasil. O armazenamento em servidores nacionais elimina a necessidade de comprovar a adequação de proteção de dados em outros países, reduz riscos jurídicos e facilita auditorias por órgãos reguladores como a **ANPD**.
+
+---
+
+### 🎥 Demonstração no YouTube
+
+Link para o vídeo explicando as diferenças de custos: https://youtu.be/T_5YdsNfHkw
 
 ---
 
