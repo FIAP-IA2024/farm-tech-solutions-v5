@@ -16,10 +16,6 @@
 
 ## 👩‍🏫 Professores
 
-### Tutor(a)
-
-- [Lucas Gomes Moreira](https://www.linkedin.com/in/lucas-gomes-moreira-15a8452a/)
-
 ### Coordenador(a)
 
 - [André Godoi](https://www.linkedin.com/in/profandregodoi/)
@@ -95,7 +91,7 @@ Cada modelo é avaliado usando as seguintes métricas:
 
 ### 🎥 Demonstração no YouTube
 
-WIP
+Link para o vídeo sobre a análise de dados / machine learning: <https://youtu.be/7Yiw4Zl927E>
 
 ---
 
@@ -198,15 +194,15 @@ Para uma comparação de custos mais abrangente, criamos uma simulação dessa m
 
 Com base no escopo dessa comparação, podemos concluir que os custos de hospedagem nos EUA são 40% menores do que no Brazil. Porém, existem outros pontos importantes que devem ser considerados ao decidir qual região hospedar a aplicação que, no nosso caso, são os seguintes:
 
- - **Latência de rede**: Existe uma diferença significativa de latência de comunicação entre servidores no Brasil e servidores nos EUA, e isso tem impacto direto no desempenho da coleta de informações dos sensores. Como os sensores que consomem a API estão no Brasil, o número de dispositivos de rede que os pacotes TCP/IP precisam atravessar para chegar até os servidores da Amazon em São Paulo é significativamente menor do que para chegar até os servidores da Amazon em Virgínia do Norte, nos EUA. Essa distância maior resulta em uma latência de rede maior, medida em milisegundos (ms). Uma pesquisa rápida no site https://cloudping.info a partir do meu computador, em São Paulo, demonstra que minha latêncial atual até a região `us-east-1` (N. Virginia) da AWS é de aproximadamente 190ms, enquanto a latência para `sa-east-1` (São Paulo) é de apenas 19ms, ou seja, 10x mais rápida.
+- **Latência de rede**: Existe uma diferença significativa de latência de comunicação entre servidores no Brasil e servidores nos EUA, e isso tem impacto direto no desempenho da coleta de informações dos sensores. Como os sensores que consomem a API estão no Brasil, o número de dispositivos de rede que os pacotes TCP/IP precisam atravessar para chegar até os servidores da Amazon em São Paulo é significativamente menor do que para chegar até os servidores da Amazon em Virgínia do Norte, nos EUA. Essa distância maior resulta em uma latência de rede maior, medida em milisegundos (ms). Uma pesquisa rápida no site <https://cloudping.info> a partir do meu computador, em São Paulo, demonstra que minha latêncial atual até a região `us-east-1` (N. Virginia) da AWS é de aproximadamente 190ms, enquanto a latência para `sa-east-1` (São Paulo) é de apenas 19ms, ou seja, 10x mais rápida.
 
- - **Restrições legais**: Para garantir conformidade com a **LGPD** e evitar complicações com a transferência internacional de dados, a hospedagem da API na região AWS São Paulo (sa-east-1) é essencial para processar os dados coletados de sensores IoT no Brasil. O armazenamento em servidores nacionais elimina a necessidade de comprovar a adequação de proteção de dados em outros países, reduz riscos jurídicos e facilita auditorias por órgãos reguladores como a **ANPD**.
+- **Restrições legais**: Para garantir conformidade com a **LGPD** e evitar complicações com a transferência internacional de dados, a hospedagem da API na região AWS São Paulo (sa-east-1) é essencial para processar os dados coletados de sensores IoT no Brasil. O armazenamento em servidores nacionais elimina a necessidade de comprovar a adequação de proteção de dados em outros países, reduz riscos jurídicos e facilita auditorias por órgãos reguladores como a **ANPD**.
 
 ---
 
 ### 🎥 Demonstração no YouTube
 
-Link para o vídeo explicando as diferenças de custos: https://youtu.be/T_5YdsNfHkw
+Link para o vídeo explicando as diferenças de custos: <https://youtu.be/T_5YdsNfHkw>
 
 ---
 
