@@ -101,8 +101,8 @@ Link para o vídeo sobre a análise de dados / machine learning: <https://youtu.
   - `crop_yield.csv`: Dataset principal com dados agrícolas
 
 - **`notebooks/`**: Jupyter Notebooks com análises e modelos
-  - `crop_yield_analysis.ipynb`: Notebook principal com todas as análises
-  - `crop_yield_analysis.py`: Versão em script Python do notebook
+  - `GabrielRibeiro_rm560173_pbl_fase5.ipynb`: Notebook principal com todas as análises
+  - `GabrielRibeiro_rm560173_pbl_fase5.py`: Versão em script Python do notebook
 
 - **`images/`**: Visualizações e gráficos gerados pelas análises
   - Histogramas, boxplots, matrizes de correlação
@@ -145,15 +145,15 @@ Link para o vídeo sobre a análise de dados / machine learning: <https://youtu.
    pip install -r requirements.txt
    ```
 
-#### Executar o Jupyter Notebook
+#### Executar o Jupyter Lab
 
-1. Inicie o servidor Jupyter:
+1. Inicie o servidor Jupyter Lab:
 
    ```bash
-   jupyter notebook
+   jupyter lab
    ```
 
-2. No navegador, navegue até a pasta `notebooks` e abra o arquivo `crop_yield_analysis.ipynb`
+2. No navegador, navegue até a pasta `notebooks` e abra o arquivo `GabrielRibeiro_rm560173_pbl_fase5.ipynb`
 
 3. Execute todas as células do notebook para reproduzir as análises e visualizações
 
