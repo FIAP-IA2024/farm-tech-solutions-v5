@@ -157,6 +157,17 @@ Link para o vídeo sobre a análise de dados / machine learning: <https://youtu.
 
 3. Execute todas as células do notebook para reproduzir as análises e visualizações
 
+#### Executar o Script Python
+
+Alternativamente, você pode executar a versão em script Python do notebook:
+
+```bash
+# Execute o script Python
+python notebooks/GabrielRibeiro_rm560173_pbl_fase5.py
+```
+
+O script executará todas as análises e gerará as visualizações automaticamente.
+
 ---
 
 ### 💻 Tecnologias Utilizadas
